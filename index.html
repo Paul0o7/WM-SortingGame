@@ -55,7 +55,7 @@ main{flex:1;display:flex;flex-direction:column;padding:6px 12px 0;min-height:0}
   min-width:clamp(150px,50vw,210px);
   box-shadow:0 8px 0 rgba(2,71,49,.16),0 14px 26px rgba(2,71,49,.18);
   cursor:grab;touch-action:none;user-select:none;will-change:transform;
-  --dx:0px;--dy:0px}
+  --dx:0px;--dy:0px;--dx1:0px;--dy1:0px;--dx2:0px;--dy2:0px}
 #card.drop{animation:drop .6s cubic-bezier(.3,1.6,.5,1)}
 @keyframes drop{0%{transform:translateY(-110px) scale(.6) rotate(-12deg);opacity:0}
   100%{transform:none;opacity:1}}
@@ -70,6 +70,20 @@ main{flex:1;display:flex;flex-direction:column;padding:6px 12px 0;min-height:0}
   60%{transform:translate(calc(var(--dx)*.86),calc(var(--dy)*.68)) scale(.5) rotate(190deg);opacity:1}
   84%{transform:translate(calc(var(--dx)*.98),calc(var(--dy)*.95)) scale(.24) rotate(250deg);opacity:.85}
   100%{transform:translate(var(--dx),var(--dy)) scale(.1) rotate(275deg);opacity:0}
+}
+/* wrong pick: fly into the chosen cart, bounce back out, then continue on
+   into the correct one — both legs measured from the card's own start point,
+   since a single element's transform keyframes are never additive */
+#card.reject{animation:reject .95s cubic-bezier(.32,.05,.38,1) forwards}
+@keyframes reject{
+  0%{transform:translate(0,0) scale(1) rotate(0deg);opacity:1}
+  24%{transform:translate(calc(var(--dx1)*.42),calc(var(--dy1)*.24 - 26px)) scale(.85) rotate(55deg);opacity:1}
+  42%{transform:translate(var(--dx1),calc(var(--dy1)*.88)) scale(.46) rotate(140deg);opacity:1}
+  52%{transform:translate(calc(var(--dx1) - 10px),calc(var(--dy1)*.7)) scale(.52) rotate(160deg);opacity:1}
+  74%{transform:translate(calc((var(--dx1) + var(--dx2))*.52),
+      calc((var(--dy1) + var(--dy2))*.42 - 24px)) scale(.58) rotate(235deg);opacity:1}
+  92%{transform:translate(calc(var(--dx2)*.98),calc(var(--dy2)*.96)) scale(.24) rotate(330deg);opacity:.85}
+  100%{transform:translate(var(--dx2),var(--dy2)) scale(.1) rotate(350deg);opacity:0}
 }
 #emoji{font-size:clamp(34px,11vw,54px);line-height:1.1}
 #name{font-size:clamp(14px,4.4vw,19px);font-weight:800;text-align:center;letter-spacing:-.01em}
@@ -462,32 +476,53 @@ function answer(bin){
   bins.forEach(b=>b.classList.remove("over"));
   const it=queue[at],right=bin===it.b,hit=$("b-"+bin),target=$("b-"+it.b);
 
-  /* fly the card into whichever cart was actually selected, landing at the
-     lid opening, so the motion always matches the player's choice */
-  const r=hit.getBoundingClientRect(),cr=card.getBoundingClientRect();
+  /* Reset any drag transform BEFORE measuring or animating. The toss/reject
+     keyframes always start their 0% frame at transform:none (the card's
+     resting layout position) — if we don't clear the drag transform first,
+     the element visually snaps back to rest the instant the animation
+     class is applied, while our distance math would still be based on
+     wherever it was dragged to. Resetting first keeps both in sync. */
+  card.style.transform="";
+  const cr=card.getBoundingClientRect();
   const fromX=cr.left+cr.width/2,fromY=cr.top+cr.height/2;
-  const toX=r.left+r.width/2,toY=r.top+r.height*0.3;
-  card.style.setProperty("--dx",(toX-fromX)+"px");
-  card.style.setProperty("--dy",(toY-fromY)+"px");
-  card.classList.add(right?"good":"bad","toss");
+
+  const r1=hit.getBoundingClientRect();
+  const toX1=r1.left+r1.width/2,toY1=r1.top+r1.height*0.3;
+  card.style.setProperty("--dx",(toX1-fromX)+"px");
+  card.style.setProperty("--dy",(toY1-fromY)+"px");
 
   if(right){
     score+=10+Math.min(streak,5)*2;streak++;best=Math.max(best,streak);
+    card.classList.add("good","toss");
     hit.classList.add("gulp");setTimeout(()=>hit.classList.remove("gulp"),460);
-    setTimeout(()=>burst(toX,toY,PARTY),330);
+    setTimeout(()=>burst(toX1,toY1,PARTY),330);
     win();
     $("fb").firstElementChild.innerHTML="<b style='color:#35701C'>Correct</b>"+it.w;
   }else{
     streak=0;missed.push(it);
-    hit.classList.add("nope");setTimeout(()=>hit.classList.remove("nope"),460);
-    target.classList.add("over");setTimeout(()=>target.classList.remove("over"),1600);
-    setTimeout(lose,330);
+    /* second leg: from the same start point, on to the correct cart */
+    const r2=target.getBoundingClientRect();
+    const toX2=r2.left+r2.width/2,toY2=r2.top+r2.height*0.3;
+    card.style.setProperty("--dx1",(toX1-fromX)+"px");
+    card.style.setProperty("--dy1",(toY1-fromY)+"px");
+    card.style.setProperty("--dx2",(toX2-fromX)+"px");
+    card.style.setProperty("--dy2",(toY2-fromY)+"px");
+    card.classList.add("bad","reject");
+
+    setTimeout(lose,220);
+    setTimeout(()=>{hit.classList.add("nope");setTimeout(()=>hit.classList.remove("nope"),420)},400);
+    setTimeout(()=>target.classList.add("over"),480);
+    setTimeout(()=>{
+      target.classList.add("gulp");
+      setTimeout(()=>target.classList.remove("gulp"),420);
+      setTimeout(()=>target.classList.remove("over"),500);
+    },870);
     $("fb").firstElementChild.innerHTML="<b style='color:#C63D17'>Goes in "+LABEL[it.b]+"</b>"+it.w;
   }
   $("fb").classList.add("on");
   bump($("score"));bump($("streak"));
   $("score").textContent=score;$("streak").textContent=streak;
-  setTimeout(()=>{at++;at>=queue.length?finish():load()},right?1500:2400);
+  setTimeout(()=>{at++;at>=queue.length?finish():load()},right?1500:2700);
 }
 
 let drag=false,sx=0,sy=0;
