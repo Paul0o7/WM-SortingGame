@@ -360,7 +360,7 @@ const LEN={kids:10,standard:14,expert:16};
 const KEY="wmSortBest_v1";
 
 let level="standard",queue=[],at=0,score=0,streak=0,best=0,locked=true,missed=[];
-let sfx=true,trackIdx=0;
+let sfx=true,trackIdx=1;
 
 const $=i=>document.getElementById(i);
 const card=$("card"),bins=[...document.querySelectorAll(".bin")];
@@ -583,7 +583,7 @@ function start(){
   load();
   if(trackIdx>0)startMusic();
 }
-$("go").addEventListener("click",()=>{ctx();beep(523,.08);start()});
+$("go").addEventListener("click",()=>{ctx();if(trackIdx===0)trackIdx=1;beep(523,.08);start()});
 $("again").addEventListener("click",start);
 $("menu").addEventListener("click",toMenu);
 $("home").addEventListener("click",toMenu);
@@ -631,7 +631,7 @@ function finish(){
   }
 }
 
-$("music").classList.add("off");
+$("music").classList.remove("off"); $("music").title = "Music: " + TRACKS[trackIdx].name; $("music").setAttribute("aria-label", "Background music: " + TRACKS[trackIdx].name);
 paintBests();
 </script>
 </body>
