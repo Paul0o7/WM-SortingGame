@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/banner.png" alt="Sort It Right — screenshots of the start screen, gameplay, and results screen" width="100%">
+<img src="banner.png" alt="Sort It Right — screenshots of the start screen, gameplay, and results screen" width="100%">
 
 # 🗑️ Sort It Right
 
