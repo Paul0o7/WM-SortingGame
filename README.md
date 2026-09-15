@@ -13,7 +13,7 @@ Blue, green, or grey? Find out how much you really know about where your waste g
 ![Made with](https://img.shields.io/badge/made%20with-HTML%20%2F%20CSS%20%2F%20JS-1B6FB5)
 ![License](https://img.shields.io/badge/code%20license-MIT-lightgrey)
 
-**[▶ Play it live](https://YOUR-USERNAME.github.io/YOUR-REPO/)** — *update this link once GitHub Pages is on*
+**[▶ Play it live]([https://YOUR-USERNAME.github.io/YOUR-REPO/](https://paul0o7.github.io/WM-SortingGame/))** — *update this link once GitHub Pages is on*
 
 </div>
 
