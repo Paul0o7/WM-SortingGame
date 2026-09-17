@@ -13,7 +13,8 @@ Blue, green, or grey? Find out how much you really know about where your waste g
 ![Made with](https://img.shields.io/badge/made%20with-HTML%20%2F%20CSS%20%2F%20JS-1B6FB5)
 ![License](https://img.shields.io/badge/code%20license-MIT-lightgrey)
 
-**[▶ Play it live](https://paul0o7.github.io/WM-SortingGame/)** — *update this link once GitHub Pages is on*
+**[▶ Play it live](https://YOUR-USERNAME.github.io/YOUR-REPO/)** — *update this link once GitHub Pages is on*
+
 </div>
 
 ---
@@ -25,7 +26,7 @@ A single-page browser game built for tabling events, classroom visits, and commu
 No app to install, no account, nothing collected about players. It's one HTML file that runs entirely in the browser.
 
 <div align="center">
-<img src="assets/gameplay.png" alt="Gameplay screenshot showing an item card above three WM carts on a park background" width="360">
+<img src="gameplay.png" alt="Gameplay screenshot showing an item card above three WM carts on a park background" width="360">
 </div>
 
 ## Features
@@ -39,7 +40,7 @@ No app to install, no account, nothing collected about players. It's one HTML fi
 - **Accessible** — full keyboard support (1 / 2 / 3), visible focus states, respects reduced-motion preferences
 
 <div align="center">
-<img src="assets/results.png" alt="Results screen showing a perfect score with confetti and a list of items to remember" width="360">
+<img src="results.png" alt="Results screen showing a perfect score with confetti and a list of items to remember" width="360">
 </div>
 
 ## Play it
@@ -93,7 +94,9 @@ Add, remove, or edit entries freely — nothing else in the code needs to change
 .
 ├── index.html        # the entire game — markup, styles, and logic
 ├── wm-logo.svg        # WM logo, vectorized
-├── assets/            # README screenshots
+├── banner.png         # README screenshot
+├── gameplay.png        # README screenshot
+├── results.png         # README screenshot
 └── README.md
 ```
 
