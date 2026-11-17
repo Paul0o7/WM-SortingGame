@@ -71,19 +71,21 @@ main{flex:1;display:flex;flex-direction:column;padding:6px 12px 0;min-height:0}
   84%{transform:translate(calc(var(--dx)*.98),calc(var(--dy)*.95)) scale(.24) rotate(250deg);opacity:.85}
   100%{transform:translate(var(--dx),var(--dy)) scale(.1) rotate(275deg);opacity:0}
 }
-/* wrong pick: fly into the chosen cart, bounce back out, then continue on
-   into the correct one — both legs measured from the card's own start point,
-   since a single element's transform keyframes are never additive */
+/* wrong answer: item visibly lands in the chosen (wrong) bin, pops back out,
+   then arcs into the correct bin. --dx1/--dy1 and --dx2/--dy2 are both
+   measured from the SAME origin point (card's reset resting position),
+   because CSS transform keyframes are never cumulative/additive -- each
+   keyframe's transform is absolute relative to the element's untransformed
+   base, not relative to the previous keyframe. */
 #card.reject{animation:reject .95s cubic-bezier(.32,.05,.38,1) forwards}
 @keyframes reject{
   0%{transform:translate(0,0) scale(1) rotate(0deg);opacity:1}
-  24%{transform:translate(calc(var(--dx1)*.42),calc(var(--dy1)*.24 - 26px)) scale(.85) rotate(55deg);opacity:1}
-  42%{transform:translate(var(--dx1),calc(var(--dy1)*.88)) scale(.46) rotate(140deg);opacity:1}
-  52%{transform:translate(calc(var(--dx1) - 10px),calc(var(--dy1)*.7)) scale(.52) rotate(160deg);opacity:1}
-  74%{transform:translate(calc((var(--dx1) + var(--dx2))*.52),
-      calc((var(--dy1) + var(--dy2))*.42 - 24px)) scale(.58) rotate(235deg);opacity:1}
-  92%{transform:translate(calc(var(--dx2)*.98),calc(var(--dy2)*.96)) scale(.24) rotate(330deg);opacity:.85}
-  100%{transform:translate(var(--dx2),var(--dy2)) scale(.1) rotate(350deg);opacity:0}
+  24%{transform:translate(calc(var(--dx1)*.4),calc(var(--dy1)*.22 - 26px)) scale(.82) rotate(55deg);opacity:1}
+  42%{transform:translate(var(--dx1),var(--dy1)) scale(.42) rotate(140deg);opacity:.95}
+  52%{transform:translate(calc(var(--dx1)*.88),calc(var(--dy1)*.72 - 18px)) scale(.5) rotate(160deg);opacity:1}
+  74%{transform:translate(calc(var(--dx2)*.55),calc(var(--dy2)*.3 - 34px)) scale(.62) rotate(230deg);opacity:1}
+  92%{transform:translate(calc(var(--dx2)*.95),calc(var(--dy2)*.92)) scale(.26) rotate(300deg);opacity:.85}
+  100%{transform:translate(var(--dx2),var(--dy2)) scale(.1) rotate(330deg);opacity:0}
 }
 #emoji{font-size:clamp(34px,11vw,54px);line-height:1.1}
 #name{font-size:clamp(14px,4.4vw,19px);font-weight:800;text-align:center;letter-spacing:-.01em}
@@ -127,6 +129,7 @@ canvas{position:fixed;inset:0;pointer-events:none;z-index:40}
   align-items:center;justify-content:center;gap:12px;padding:24px 22px;text-align:center;
   background:#EDF8EC;overflow-y:auto}
 .screen.hide{display:none}
+.hide{display:none!important}
 .mark{height:clamp(40px,13vw,58px);width:auto}
 .screen h1{font-size:clamp(26px,9vw,40px);line-height:1;color:var(--deep);font-weight:800;
   letter-spacing:-.02em}
@@ -139,12 +142,15 @@ canvas{position:fixed;inset:0;pointer-events:none;z-index:40}
 .btn:active{transform:translateY(4px);box-shadow:0 1px 0 #024A2B}
 .btn.gold{background:var(--gold);color:var(--deep);box-shadow:0 5px 0 #B98800}
 .btn.gold:active{box-shadow:0 1px 0 #B98800}
-.levels{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.levels{display:flex;gap:9px;flex-wrap:wrap;justify-content:center}
 .lv{border:3px solid #CFE0CE;background:#fff;color:var(--soft);font:inherit;
-  font-size:clamp(11px,3.4vw,14px);font-weight:800;padding:9px 16px;border-radius:999px;
-  cursor:pointer;transition:all .15s;line-height:1.15}
+  font-size:clamp(12px,3.6vw,15px);font-weight:800;padding:12px 19px;border-radius:999px;
+  cursor:pointer;transition:all .15s;line-height:1.15;min-height:46px}
 .lv small{display:block;font-size:9px;font-weight:700;opacity:.75}
 .lv[aria-pressed="true"]{border-color:var(--green);background:var(--green);color:#fff}
+.lv.mo{padding:14px 23px;font-size:clamp(13px,4vw,16px)}
+.lv.mo[aria-pressed="true"]{border-color:var(--blue-d);background:var(--blue-d)}
+#bins.two-up{grid-template-columns:1fr 1fr}
 #big{font-size:clamp(44px,15vw,66px);font-weight:800;color:var(--deep);letter-spacing:-.03em;
   line-height:1;font-variant-numeric:tabular-nums}
 #grade{font-size:clamp(11px,3.4vw,14px);letter-spacing:.15em;text-transform:uppercase;
@@ -160,6 +166,93 @@ canvas{position:fixed;inset:0;pointer-events:none;z-index:40}
 .endrow{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 .ghost{background:#fff;color:var(--green);border:3px solid var(--green);font:inherit;
   font-weight:800;font-size:clamp(12px,3.6vw,15px);padding:11px 24px;border-radius:999px;cursor:pointer}
+
+.ltabs{display:flex;gap:9px;flex-wrap:wrap;justify-content:center}
+.ltab{border:3px solid #CFE0CE;background:#fff;color:var(--soft);font:inherit;min-height:46px;
+  font-size:clamp(12px,3.6vw,14.5px);font-weight:800;padding:11px 19px 11px 14px;border-radius:999px;
+  cursor:pointer;transition:all .12s;box-shadow:0 3px 0 #CFE0CE}
+.ltab:active{transform:translateY(3px);box-shadow:none}
+.ldot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:7px;vertical-align:middle}
+.ltab[data-cat="recycle"] .ldot{background:var(--blue-d)}
+.ltab[data-cat="organic"] .ldot{background:var(--grn-d)}
+.ltab[data-cat="landfill"] .ldot{background:var(--gry-d)}
+.ltab[aria-pressed="true"] .ldot{background:#fff}
+.ltab[data-cat="recycle"][aria-pressed="true"]{border-color:#083C66;background:var(--blue-d);color:#fff;box-shadow:0 3px 0 #083C66}
+.ltab[data-cat="organic"][aria-pressed="true"]{border-color:#1D4810;background:var(--grn-d);color:#fff;box-shadow:0 3px 0 #1D4810}
+.ltab[data-cat="landfill"][aria-pressed="true"]{border-color:#232726;background:var(--gry-d);color:#fff;box-shadow:0 3px 0 #232726}
+.lsearch-tab{border-color:#F3D98B;color:#8A5A00;box-shadow:0 3px 0 #F3D98B}
+.lsearch-tab[aria-pressed="true"]{border-color:#8A5A00;background:var(--gold);color:var(--deep);box-shadow:0 3px 0 #8A5A00}
+#lbrowse,#lsearchwrap{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
+#lsearchwrap p{font-size:clamp(12px,3.6vw,15px);color:var(--soft);line-height:1.55;max-width:36ch;
+  font-weight:600;text-align:center;margin:0}
+#lsearchinput{width:min(92vw,380px);padding:13px 18px;border-radius:999px;border:3px solid #CFE0CE;
+  font:inherit;font-size:clamp(13px,3.8vw,15px);font-weight:700;color:var(--ink);background:#fff}
+#lsearchinput:focus{outline:none;border-color:var(--green)}
+#lresults{width:min(92vw,380px);max-height:min(46vh,360px);overflow-y:auto;
+  display:flex;flex-direction:column;gap:8px;padding:2px 2px 2px 0}
+.lrow{display:flex;align-items:center;gap:10px;background:#fff;border-radius:16px;padding:9px 12px;
+  text-align:left;border:none;font:inherit;cursor:pointer;box-shadow:0 3px 0 rgba(2,71,49,.08);
+  width:100%;transition:transform .1s}
+.lrow:active{transform:translateY(2px);box-shadow:none}
+.lremoji{font-size:22px;flex:none;width:26px;text-align:center}
+.lrmain{flex:1;min-width:0}
+.lrname{display:block;font-size:12.5px;font-weight:800;color:var(--ink)}
+.lrwhy{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  font-size:10px;color:var(--soft);font-weight:600;line-height:1.3;margin-top:1px}
+.lrmix{font-size:9.5px;font-weight:800;color:#8A5A00;margin-top:2px}
+.lrtag{flex:none;font-size:9px;font-weight:800;color:#fff;padding:4px 9px;border-radius:999px;
+  text-transform:uppercase;letter-spacing:.04em;align-self:flex-start}
+.lrtag.recycle{background:var(--blue-d)}
+.lrtag.organic{background:var(--grn-d)}
+.lrtag.landfill{background:var(--gry-d)}
+.lempty{color:var(--soft);font-size:12px;font-weight:700;padding:16px 0;text-align:center;width:100%}
+#lcardwrap{min-height:clamp(140px,25vh,190px);display:flex;align-items:center;justify-content:center;
+  width:100%;border-radius:32px;transition:background .3s}
+#lcardwrap.cat-recycle{background:radial-gradient(ellipse at center,#CFE7F8 0%,rgba(207,231,248,0) 70%)}
+#lcardwrap.cat-organic{background:radial-gradient(ellipse at center,#D5ECC7 0%,rgba(213,236,199,0) 70%)}
+#lcardwrap.cat-landfill{background:radial-gradient(ellipse at center,#DADEDC 0%,rgba(218,222,220,0) 70%)}
+#lcard{background:#fff;border-radius:22px;border-top:12px solid #CFE0CE;
+  padding:clamp(16px,4vw,22px) clamp(22px,6.5vw,34px) clamp(14px,3.6vw,20px);
+  display:flex;flex-direction:column;align-items:center;gap:4px;max-width:92vw;min-width:min(78vw,300px);
+  box-shadow:0 6px 0 rgba(2,71,49,.14),0 10px 20px rgba(2,71,49,.16);cursor:pointer;
+  transition:border-color .2s}
+#lcard.cat-recycle{border-top-color:var(--blue-d)}
+#lcard.cat-organic{border-top-color:var(--grn-d)}
+#lcard.cat-landfill{border-top-color:var(--gry-d)}
+#lcatlabel{font-size:10.5px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;margin-bottom:1px}
+#lcatlabel.cat-recycle{color:var(--blue-d)}
+#lcatlabel.cat-organic{color:var(--grn-d)}
+#lcatlabel.cat-landfill{color:var(--gry-d)}
+#lcard.lin{animation:lin .45s cubic-bezier(.3,1.5,.5,1)}
+#lcard.lfwd{animation:lslideF .4s cubic-bezier(.3,1.4,.5,1)}
+#lcard.lback{animation:lslideB .4s cubic-bezier(.3,1.4,.5,1)}
+@keyframes lin{0%{transform:translateY(16px) scale(.92);opacity:0}100%{transform:none;opacity:1}}
+@keyframes lslideF{0%{transform:translateX(38px) scale(.94);opacity:0}100%{transform:none;opacity:1}}
+@keyframes lslideB{0%{transform:translateX(-38px) scale(.94);opacity:0}100%{transform:none;opacity:1}}
+#lemoji{font-size:clamp(32px,10vw,48px);line-height:1.1}
+#lname{font-size:clamp(14px,4.2vw,18px);font-weight:800;text-align:center;letter-spacing:-.01em}
+#lwhy{font-size:clamp(10.5px,3vw,12.5px);color:var(--soft);font-weight:600;text-align:center;
+  max-width:38ch;line-height:1.4;margin-top:2px}
+#lmix{background:#FFF4D6;color:#8A5A00;border:2px solid var(--gold);border-radius:10px;
+  font-size:10.5px;font-weight:800;padding:5px 11px;margin-top:6px;max-width:34ch;line-height:1.3}
+#lmix[hidden]{display:none}
+#ltip{font-size:9px;color:var(--soft);opacity:.65;font-weight:700;margin-top:5px;letter-spacing:.02em}
+#lbar{width:min(80vw,320px);height:5px;background:rgba(2,71,49,.12);border-radius:3px;overflow:hidden}
+#lbar i{display:block;height:100%;width:0;background:var(--grn);border-radius:3px;
+  transition:width .35s cubic-bezier(.2,.8,.2,1)}
+.lctrl{display:flex;align-items:center;justify-content:center;gap:18px}
+.lctrl .tool{width:46px;height:46px;font-size:15px}
+#lprev,#lnext{background:#fff;color:var(--green);border:3px solid var(--green)}
+#lprev:hover,#lnext:hover{background:#EDF8EC}
+#lplay{width:66px;height:66px;background:var(--green);color:#fff;font-size:20px;
+  box-shadow:0 4px 0 #024A2B;transition:transform .12s,box-shadow .12s,background .15s}
+#lplay:hover{background:var(--grn-d)}
+#lplay:active{transform:translateY(3px);box-shadow:0 1px 0 #024A2B}
+#lcount{font-size:11px;font-weight:700;color:var(--soft);letter-spacing:.05em}
+#lprog{width:120px;height:3px;background:rgba(2,71,49,.1);border-radius:2px;overflow:hidden}
+#lprog i{display:block;height:100%;width:0;background:var(--gold)}
+#lprog.run i{animation:lprogrun 3.6s linear}
+@keyframes lprogrun{0%{width:0}100%{width:100%}}
 
 @media (max-height:640px){.what{display:none}#tip{display:none}.screen{gap:8px}}
 @media (max-height:520px){
@@ -275,8 +368,14 @@ canvas{position:fixed;inset:0;pointer-events:none;z-index:40}
   <div class="screen" id="start">
     <img src="wm-logo.svg" alt="WM" class="mark">
     <h1>Sort it <em>right</em></h1>
-    <p>Three carts. One item at a time. Find out how much you really know about where your waste goes.</p>
-    <div class="levels" role="group" aria-label="Choose a level">
+    <div class="levels" id="moderow" role="group" aria-label="Choose a mode">
+      <button class="lv mo" data-mode="classic" aria-pressed="true">Classic</button>
+      <button class="lv mo" data-mode="organics" aria-pressed="false">Organics focus</button>
+      <button class="lv mo" data-mode="recycling" aria-pressed="false">Recycling focus</button>
+      <button class="lv mo" data-mode="learn" aria-pressed="false">Learn</button>
+    </div>
+    <p id="modedesc">Three carts. One item at a time. Find out how much you really know about where your waste goes.</p>
+    <div class="levels" id="levelrow" role="group" aria-label="Choose a level">
       <button class="lv" data-lv="kids" aria-pressed="false">Kids<small id="bk">best 0</small></button>
       <button class="lv" data-lv="standard" aria-pressed="true">Standard<small id="bs">best 0</small></button>
       <button class="lv" data-lv="expert" aria-pressed="false">Expert<small id="be">best 0</small></button>
@@ -293,8 +392,49 @@ canvas{position:fixed;inset:0;pointer-events:none;z-index:40}
     <div class="missed" id="missed" hidden></div>
     <div class="endrow">
       <button class="btn gold" id="again">Play again</button>
-      <button class="ghost" id="menu">Change level</button>
+      <button class="ghost" id="menu">Change mode</button>
     </div>
+  </div>
+
+  <div class="screen hide" id="learn">
+    <img src="wm-logo.svg" alt="WM" class="mark">
+    <h1>How sorting <em>works</em></h1>
+    <div class="ltabs" role="tablist" aria-label="Choose a cart or search">
+      <button class="ltab" data-cat="recycle" aria-pressed="true"><span class="ldot"></span>Recycling</button>
+      <button class="ltab" data-cat="organic" aria-pressed="false"><span class="ldot"></span>Organics</button>
+      <button class="ltab" data-cat="landfill" aria-pressed="false"><span class="ldot"></span>Landfill</button>
+      <button class="ltab lsearch-tab" data-cat="search" aria-pressed="false">&#128269; Look it up</button>
+    </div>
+
+    <div id="lbrowse">
+      <p id="lblurb"></p>
+      <div id="lbar"><i id="lfill"></i></div>
+      <div id="lcardwrap">
+        <div id="lcard">
+          <div id="lcatlabel"></div>
+          <div id="lemoji"></div>
+          <div id="lname"></div>
+          <div id="lwhy"></div>
+          <div id="lmix" hidden></div>
+          <div id="ltip">Tap the card for the next one</div>
+        </div>
+      </div>
+      <div class="lctrl">
+        <button class="tool" id="lprev" aria-label="Previous example">&#9664;</button>
+        <button class="tool" id="lplay" aria-label="Play">&#9654;</button>
+        <button class="tool" id="lnext" aria-label="Next example">&#9654;</button>
+      </div>
+      <div id="lcount"></div>
+      <div id="lprog"><i></i></div>
+    </div>
+
+    <div id="lsearchwrap" class="hide">
+      <p>Not sure which cart something goes in? Type it below, or scroll the full list.</p>
+      <input type="text" id="lsearchinput" placeholder="Search all 51 items… try &quot;pizza&quot;" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <div id="lresults"></div>
+    </div>
+
+    <button class="ghost" id="learnback">Back to menu</button>
   </div>
 </div>
 <canvas id="fx"></canvas>
@@ -312,32 +452,33 @@ const ITEMS=[
 {e:"\u{1FAD9}",n:"Glass jar",b:"recycle",lv:1,w:"Rinse it. Glass recycles forever without losing quality."},
 {e:"\u{1F96B}",n:"Metal food can",b:"recycle",lv:1,w:"Magnets pull steel off the line automatically. Give it a rinse."},
 {e:"\u{1F9F4}",n:"Shampoo bottle",b:"recycle",lv:1,w:"Rigid plastic bottles are accepted. Empty it, cap back on."},
-{e:"\u{1F9C3}",n:"Juice box",b:"recycle",lv:1,w:"Most programs take cartons now. Empty and flatten them."},
+{e:"\u{1F9C3}",n:"Juice box",b:"recycle",lv:1,w:"Most programs take cartons now. Empty and flatten them.",mix:"landfill"},
 {e:"\u{1F6CD}\uFE0F",n:"Plastic grocery bag",b:"landfill",lv:1,w:"Film plastic tangles the sorting machines. Use store drop-off bins."},
 {e:"\u{1F964}",n:"Foam drink cup",b:"landfill",lv:1,w:"Polystyrene foam has almost no recycling market anywhere."},
 {e:"\u{1F476}",n:"Disposable diaper",b:"landfill",lv:1,w:"Mixed materials plus contamination. Landfill only."},
+{e:"\u{1F43E}",n:"Pet waste",b:"landfill",lv:1,w:"It's organic material, but pathogens keep it out of both other carts. Bag it, trash it.",mix:"organic"},
 {e:"\u{1F9FD}",n:"Kitchen sponge",b:"landfill",lv:1,w:"Synthetic foam with food residue. Neither other cart can take it."},
 
-{e:"\u{1F355}",n:"Greasy pizza box",b:"organic",lv:2,w:"Grease ruins paper recycling, but the fiber composts fine."},
-{e:"\u{1F9FB}",n:"Used paper towel",b:"organic",lv:2,w:"Food-soiled paper belongs with organics, never with recycling."},
+{e:"\u{1F355}",n:"Greasy pizza box",b:"organic",lv:2,w:"Grease ruins paper recycling, but the fiber composts fine.",mix:"recycle"},
+{e:"\u{1F9FB}",n:"Used paper towel",b:"organic",lv:2,w:"Food-soiled paper belongs with organics, never with recycling.",mix:"recycle"},
 {e:"\u{1FAD8}",n:"Coffee grounds",b:"organic",lv:2,w:"Grounds and the paper filter go green together."},
 {e:"\u{1FAB5}",n:"Untreated wood scraps",b:"organic",lv:2,w:"Clean wood composts. Painted or pressure-treated wood does not."},
 {e:"\u{1FAB4}",n:"Dead houseplant",b:"organic",lv:2,w:"Plant and soil both go green. The plastic pot does not."},
 {e:"\u{1F95C}",n:"Peanut shells",b:"organic",lv:2,w:"Nut shells compost. One of the easiest organics wins."},
-{e:"\u{1F9B4}",n:"Chicken bones",b:"organic",lv:2,w:"Bones go green in commercial composting, unlike backyard piles."},
+{e:"\u{1F9B4}",n:"Chicken bones",b:"organic",lv:2,w:"Bones go green in commercial composting, unlike backyard piles.",mix:"landfill"},
 {e:"\u{1F9C0}",n:"Cheese rind",b:"organic",lv:2,w:"Dairy is fine in commercial organics collection."},
-{e:"\u{1F9C8}",n:"Butter tub",b:"recycle",lv:2,w:"Rigid tubs are usually accepted. Rinse it, lid off."},
+{e:"\u{1F9C8}",n:"Butter tub",b:"recycle",lv:2,w:"Rigid tubs are usually accepted. Rinse it, lid off.",mix:"landfill"},
 {e:"\u{1F4D3}",n:"Spiral notebook",b:"recycle",lv:2,w:"Pull the metal spiral out first, then the paper recycles."},
-{e:"\u{2615}",n:"Lined coffee cup",b:"landfill",lv:2,w:"The plastic lining stops it pulping. Lid and sleeve may recycle separately."},
+{e:"\u{2615}",n:"Lined coffee cup",b:"landfill",lv:2,w:"The plastic lining stops it pulping. Lid and sleeve may recycle separately.",mix:"recycle"},
 {e:"\u{1F375}",n:"Broken ceramic mug",b:"landfill",lv:2,w:"Ceramic melts at a different temperature than glass and ruins the batch."},
 {e:"\u{1F36C}",n:"Candy wrapper",b:"landfill",lv:2,w:"Foil bonded to plastic cannot be separated at the facility."},
 {e:"\u{1F9E6}",n:"Worn-out socks",b:"landfill",lv:2,w:"Textiles wrap around the sorting equipment. Use a textile drop-off."},
 {e:"\u{1FAA3}",n:"Plastic bucket",b:"landfill",lv:2,w:"Too large and rigid for the line. Reuse it or find a rigid plastic drop-off."},
 
-{e:"\u{1F9FE}",n:"Glossy receipt",b:"landfill",lv:3,w:"Thermal paper carries BPA and contaminates recycled pulp."},
+{e:"\u{1F9FE}",n:"Glossy receipt",b:"landfill",lv:3,w:"Thermal paper carries BPA and contaminates recycled pulp.",mix:"recycle"},
 {e:"\u{1FAA5}",n:"Toothbrush",b:"landfill",lv:3,w:"Nylon bristles fused to plastic. Too small and too mixed to sort."},
-{e:"\u{1F4C4}",n:"Shredded paper",b:"landfill",lv:3,w:"Short fibers fall through the screens. Compost it if your program allows."},
-{e:"\u{1F374}",n:"Compostable plastic fork",b:"landfill",lv:3,w:"It only breaks down at industrial facilities. Most areas cannot process it."},
+{e:"\u{1F4C4}",n:"Shredded paper",b:"organic",lv:3,w:"Short fibers jam paper recycling, but it composts fine in the green cart.",mix:"recycle"},
+{e:"\u{1F374}",n:"Compostable plastic fork",b:"landfill",lv:3,w:"It only breaks down at industrial facilities. Most areas cannot process it.",mix:"organic"},
 {e:"\u{1FAE7}",n:"Bubble wrap",b:"landfill",lv:3,w:"Another film plastic. Same problem as grocery bags."},
 {e:"\u{1F455}",n:"Old cotton t-shirt",b:"landfill",lv:3,w:"Textiles jam the line. Donate it or use a textile drop-off."},
 {e:"\u{1F45F}",n:"Worn-out sneakers",b:"landfill",lv:3,w:"Glued rubber, foam and fabric. Some brands run take-back programs."},
@@ -358,9 +499,24 @@ const ITEMS=[
 const LABEL={recycle:"the blue cart",organic:"the green cart",landfill:"the grey cart"};
 const LEN={kids:10,standard:14,expert:16};
 const KEY="wmSortBest_v1";
+const MODEDESC={
+  classic:"Three carts. One item at a time. Find out how much you really know about where your waste goes.",
+  organics:"One question at a time: does this belong in the green organics cart, or somewhere else? The toughest call for most people.",
+  recycling:"One question at a time: does this belong in the blue recycling cart, or somewhere else?"
+};
+const LBLURB={
+  recycle:"Paper, cardboard, glass, cans, bottles — rinsed and loose, never in a plastic bag.",
+  organic:"Food scraps, yard waste, food-soiled paper — even bones, shells, and greasy pizza boxes.",
+  landfill:"Film plastic, foam, diapers, pet waste, textiles — anything the other two carts can't take."
+};
+const MIXLABEL={recycle:"recycling",organic:"organics",landfill:"the trash"};
+const CATNAME={recycle:"Recycling",organic:"Organics",landfill:"Landfill"};
+const TAGSHORT={recycle:"Recycle",organic:"Organic",landfill:"Trash"};
+const LOOKUP=ITEMS.slice().sort((a,b)=>a.n.localeCompare(b.n));
 
-let level="standard",queue=[],at=0,score=0,streak=0,best=0,locked=true,missed=[];
-let sfx=true,trackIdx=1;
+let mode="classic",level="standard",queue=[],at=0,score=0,streak=0,best=0,locked=true,missed=[];
+let sfx=true,trackIdx=0;
+function scoreKey(){return mode==="classic"?level:mode}
 
 const $=i=>document.getElementById(i);
 const card=$("card"),bins=[...document.querySelectorAll(".bin")];
@@ -372,7 +528,7 @@ function paintBests(){
   $("bk").textContent="best "+(b.kids||0);
   $("bs").textContent="best "+(b.standard||0);
   $("be").textContent="best "+(b.expert||0);
-  $("bestnum").textContent=b[level]||0;
+  $("bestnum").textContent=b[scoreKey()]||0;
 }
 
 let ac=null;
@@ -451,10 +607,43 @@ function tick(){
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;
   [a[i],a[j]]=[a[j],a[i]]}return a}
 function build(){
+  if(mode==="organics")return buildFocus("organic");
+  if(mode==="recycling")return buildFocus("recycle");
   if(level==="kids")return shuffle(ITEMS.filter(x=>x.lv===1)).slice(0,LEN.kids);
   if(level==="standard")return shuffle(ITEMS.filter(x=>x.lv<=2)).slice(0,LEN.standard);
   const hard=shuffle(ITEMS.filter(x=>x.lv===3)),mid=shuffle(ITEMS.filter(x=>x.lv===2));
   return shuffle(hard.slice(0,10).concat(mid.slice(0,6)));
+}
+function buildFocus(cat){
+  /* two-bin focus mode: half the items genuinely belong in `cat`, half are
+     drawn from everything else, so the round is an honest yes/no test
+     rather than a giveaway. */
+  const yes=shuffle(ITEMS.filter(x=>x.b===cat)),no=shuffle(ITEMS.filter(x=>x.b!==cat));
+  const n=14,yesN=Math.ceil(n/2),noN=n-yesN;
+  return shuffle(yes.slice(0,yesN).concat(no.slice(0,noN)));
+}
+function applyBinMode(){
+  const rec=$("b-recycle"),org=$("b-organic"),land=$("b-landfill"),binsEl=$("bins");
+  const landTag=land.querySelector(".tag"),landWhat=land.querySelector(".what");
+  if(mode==="organics"){
+    rec.style.display="none";org.style.display="";land.style.display="";
+    landTag.textContent="Not organic";
+    landWhat.textContent="Recycling, trash — anything that isn't organics";
+    land.setAttribute("aria-label","Grey cart, not organic");
+    binsEl.classList.add("two-up");
+  }else if(mode==="recycling"){
+    org.style.display="none";rec.style.display="";land.style.display="";
+    landTag.textContent="Not recyclable";
+    landWhat.textContent="Organics, trash — anything that isn't recycling";
+    land.setAttribute("aria-label","Grey cart, not recyclable");
+    binsEl.classList.add("two-up");
+  }else{
+    rec.style.display="";org.style.display="";land.style.display="";
+    landTag.textContent="Landfill";
+    landWhat.textContent="Film plastic, foam, diapers, pet waste";
+    land.setAttribute("aria-label","Grey cart, landfill");
+    binsEl.classList.remove("two-up");
+  }
 }
 function load(){
   const it=queue[at];
@@ -473,51 +662,61 @@ function answer(bin){
   if(locked)return;
   locked=true;
   card.classList.remove("idle","drop");
-  bins.forEach(b=>b.classList.remove("over"));
-  const it=queue[at],right=bin===it.b,hit=$("b-"+bin),target=$("b-"+it.b);
-
-  /* Reset any drag transform BEFORE measuring or animating. The toss/reject
-     keyframes always start their 0% frame at transform:none (the card's
-     resting layout position) — if we don't clear the drag transform first,
-     the element visually snaps back to rest the instant the animation
-     class is applied, while our distance math would still be based on
-     wherever it was dragged to. Resetting first keeps both in sync. */
+  /* a drag leaves an inline transform on the card (translate/rotate/scale
+     from pointermove). The toss/reject keyframes' 0% frame assumes the
+     card's normal, untransformed resting position -- so we must clear any
+     drag transform BEFORE measuring getBoundingClientRect(), or the
+     measured origin won't match what the animation actually starts from,
+     and the card visibly snaps/jumps when the animation class is added. */
   card.style.transform="";
+  bins.forEach(b=>b.classList.remove("over"));
+  const it=queue[at];
+  /* in a two-bin focus mode, anything that isn't the focus category maps
+     onto the single visible "other" bin (always id b-landfill, relabeled
+     by applyBinMode) -- classic mode keeps the item's real bin. */
+  let correctBin=it.b;
+  if(mode==="organics")correctBin=it.b==="organic"?"organic":"landfill";
+  else if(mode==="recycling")correctBin=it.b==="recycle"?"recycle":"landfill";
+  const right=bin===correctBin,hit=$("b-"+bin),target=$("b-"+correctBin);
+
   const cr=card.getBoundingClientRect();
   const fromX=cr.left+cr.width/2,fromY=cr.top+cr.height/2;
-
-  const r1=hit.getBoundingClientRect();
-  const toX1=r1.left+r1.width/2,toY1=r1.top+r1.height*0.3;
-  card.style.setProperty("--dx",(toX1-fromX)+"px");
-  card.style.setProperty("--dy",(toY1-fromY)+"px");
+  function deltaTo(el){
+    const r=el.getBoundingClientRect();
+    return [r.left+r.width/2-fromX, r.top+r.height*0.3-fromY];
+  }
 
   if(right){
-    score+=10+Math.min(streak,5)*2;streak++;best=Math.max(best,streak);
+    const[toX,toY]=deltaTo(hit);
+    card.style.setProperty("--dx",toX+"px");
+    card.style.setProperty("--dy",toY+"px");
     card.classList.add("good","toss");
+
+    score+=10+Math.min(streak,5)*2;streak++;best=Math.max(best,streak);
     hit.classList.add("gulp");setTimeout(()=>hit.classList.remove("gulp"),460);
-    setTimeout(()=>burst(toX1,toY1,PARTY),330);
+    setTimeout(()=>burst(fromX+toX,fromY+toY,PARTY),330);
     win();
     $("fb").firstElementChild.innerHTML="<b style='color:#35701C'>Correct</b>"+it.w;
   }else{
-    streak=0;missed.push(it);
-    /* second leg: from the same start point, on to the correct cart */
-    const r2=target.getBoundingClientRect();
-    const toX2=r2.left+r2.width/2,toY2=r2.top+r2.height*0.3;
-    card.style.setProperty("--dx1",(toX1-fromX)+"px");
-    card.style.setProperty("--dy1",(toY1-fromY)+"px");
-    card.style.setProperty("--dx2",(toX2-fromX)+"px");
-    card.style.setProperty("--dy2",(toY2-fromY)+"px");
+    /* two-hop flight: origin -> wrong bin (bounce) -> correct bin.
+       Both deltas are measured from the same origin point, matching the
+       absolute (non-cumulative) nature of CSS transform keyframes. */
+    const[d1x,d1y]=deltaTo(hit),[d2x,d2y]=deltaTo(target);
+    card.style.setProperty("--dx1",d1x+"px");
+    card.style.setProperty("--dy1",d1y+"px");
+    card.style.setProperty("--dx2",d2x+"px");
+    card.style.setProperty("--dy2",d2y+"px");
     card.classList.add("bad","reject");
 
+    streak=0;missed.push(it);
     setTimeout(lose,220);
     setTimeout(()=>{hit.classList.add("nope");setTimeout(()=>hit.classList.remove("nope"),420)},400);
     setTimeout(()=>target.classList.add("over"),480);
-    setTimeout(()=>{
-      target.classList.add("gulp");
-      setTimeout(()=>target.classList.remove("gulp"),420);
-      setTimeout(()=>target.classList.remove("over"),500);
-    },870);
-    $("fb").firstElementChild.innerHTML="<b style='color:#C63D17'>Goes in "+LABEL[it.b]+"</b>"+it.w;
+    setTimeout(()=>{target.classList.add("gulp");target.classList.remove("over");
+      setTimeout(()=>target.classList.remove("gulp"),420)},870);
+    const catWord={recycle:"recyclable",organic:"organic",landfill:"landfill only"}[it.b];
+    const wrongMsg=mode==="classic"?("Goes in "+LABEL[it.b]):("Actually "+catWord);
+    $("fb").firstElementChild.innerHTML="<b style='color:#C63D17'>"+wrongMsg+"</b>"+it.w;
   }
   $("fb").classList.add("on");
   bump($("score"));bump($("streak"));
@@ -552,7 +751,9 @@ card.addEventListener("pointerup",e=>{
 card.addEventListener("pointercancel",()=>{drag=false;card.style.transform="";
   card.style.transition="";bins.forEach(b=>b.classList.remove("over"))});
 function binAt(x,y){
-  for(const b of bins){const r=b.getBoundingClientRect();
+  for(const b of bins){
+    if(b.style.display==="none")continue;
+    const r=b.getBoundingClientRect();
     if(x>=r.left&&x<=r.right&&y>=r.top-18&&y<=r.bottom)return b}
   return null;
 }
@@ -560,22 +761,33 @@ bins.forEach(b=>b.addEventListener("click",()=>{if(!drag)answer(b.dataset.bin)})
 addEventListener("keydown",e=>{
   if(!$("start").classList.contains("hide"))return;
   const m={"1":"recycle","2":"organic","3":"landfill"};
-  if(m[e.key])answer(m[e.key]);
+  const b=m[e.key];
+  if(b&&$("b-"+b).style.display!=="none")answer(b);
 });
 
-document.querySelectorAll(".lv").forEach(b=>b.addEventListener("click",()=>{
+document.querySelectorAll(".lv:not(.mo)").forEach(b=>b.addEventListener("click",()=>{
   level=b.dataset.lv;
-  document.querySelectorAll(".lv").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));
+  document.querySelectorAll(".lv:not(.mo)").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));
+  paintBests();
+}));
+document.querySelectorAll(".mo").forEach(b=>b.addEventListener("click",()=>{
+  if(b.dataset.mode==="learn"){showLearn();return}
+  mode=b.dataset.mode;
+  document.querySelectorAll(".mo").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));
+  $("levelrow").classList.toggle("hide",mode!=="classic");
+  $("modedesc").textContent=MODEDESC[mode];
   paintBests();
 }));
 function toMenu(){
-  locked=true;stopMusic();
+  locked=true;stopMusic();stopLearnPlay();
   $("fb").classList.remove("on");
   $("end").classList.add("hide");
+  $("learn").classList.add("hide");
   $("start").classList.remove("hide");
   paintBests();
 }
 function start(){
+  applyBinMode();
   queue=build();at=0;score=0;streak=0;best=0;missed=[];
   $("score").textContent=0;$("streak").textContent=0;
   paintBests();
@@ -583,7 +795,7 @@ function start(){
   load();
   if(trackIdx>0)startMusic();
 }
-$("go").addEventListener("click",()=>{ctx();if(trackIdx===0)trackIdx=1;beep(523,.08);start()});
+$("go").addEventListener("click",()=>{ctx();beep(523,.08);start()});
 $("again").addEventListener("click",start);
 $("menu").addEventListener("click",toMenu);
 $("home").addEventListener("click",toMenu);
@@ -602,13 +814,128 @@ $("music").addEventListener("click",()=>{
   if(trackIdx===0){stopMusic()}else{startMusic()}
 });
 
+let lcat="recycle",lidx=0,lplaying=false,ltimer=null;
+function lItems(){return ITEMS.filter(x=>x.b===lcat)}
+/* kind: "f" slide-in-from-right (forward step), "b" slide-in-from-left
+   (back step), "cat" pop-in (category switch), omitted = no animation
+   (first paint only). */
+function renderLearn(kind){
+  const items=lItems(),it=items[lidx];
+  $("lblurb").textContent=LBLURB[lcat];
+  $("lcatlabel").textContent=CATNAME[lcat];
+  $("lemoji").textContent=it.e;
+  $("lname").textContent=it.n;
+  $("lwhy").textContent=it.w;
+  const mixEl=$("lmix");
+  if(it.mix){mixEl.hidden=false;mixEl.textContent="⚠ People often put this in "+MIXLABEL[it.mix]+" instead"}
+  else{mixEl.hidden=true;mixEl.textContent=""}
+  $("lcount").textContent=(lidx+1)+" / "+items.length;
+  $("lfill").style.width=((lidx+1)/items.length*100)+"%";
+  const catCls=["cat-recycle","cat-organic","cat-landfill"];
+  const lc=$("lcard");
+  lc.classList.remove(...catCls);lc.classList.add("cat-"+lcat);
+  $("lcardwrap").classList.remove(...catCls);$("lcardwrap").classList.add("cat-"+lcat);
+  $("lcatlabel").classList.remove(...catCls);$("lcatlabel").classList.add("cat-"+lcat);
+  lc.classList.remove("lin","lfwd","lback");
+  if(kind){void lc.offsetWidth;lc.classList.add(kind==="f"?"lfwd":kind==="b"?"lback":"lin")}
+}
+function lstep(d){
+  const items=lItems();lidx=(lidx+d+items.length)%items.length;
+  renderLearn(d>0?"f":"b");
+}
+function restartLProg(){
+  const p=$("lprog");p.classList.remove("run");void p.offsetWidth;p.classList.add("run");
+}
+function stopLearnPlay(){
+  lplaying=false;clearInterval(ltimer);ltimer=null;
+  $("lplay").innerHTML="&#9654;";$("lplay").setAttribute("aria-label","Play");
+  $("lprog").classList.remove("run");
+}
+function startLearnPlay(){
+  lplaying=true;
+  $("lplay").innerHTML="&#10074;&#10074;";$("lplay").setAttribute("aria-label","Pause");
+  restartLProg();
+  ltimer=setInterval(()=>{lstep(1);restartLProg()},3600);
+}
+function renderResults(q){
+  const query=q.trim().toLowerCase();
+  const list=query?LOOKUP.filter(x=>x.n.toLowerCase().includes(query)):LOOKUP;
+  const box=$("lresults");
+  if(list.length===0){
+    box.innerHTML="<div class='lempty'>No items match “"+q.trim()+"”. Try a shorter word.</div>";
+    return;
+  }
+  box.innerHTML=list.map(it=>{
+    const mixHtml=it.mix?"<div class='lrmix'>⚠ Often confused with "+MIXLABEL[it.mix]+"</div>":"";
+    return "<button type='button' class='lrow' data-name=\""+it.n.replace(/"/g,"&quot;")+"\">"
+      +"<span class='lremoji'>"+it.e+"</span>"
+      +"<span class='lrmain'><span class='lrname'>"+it.n+"</span>"
+      +"<span class='lrwhy'>"+it.w+"</span>"+mixHtml+"</span>"
+      +"<span class='lrtag "+it.b+"'>"+TAGSHORT[it.b]+"</span>"
+      +"</button>";
+  }).join("");
+}
+function showBrowseUI(){$("lbrowse").classList.remove("hide");$("lsearchwrap").classList.add("hide")}
+function showSearchUI(){$("lsearchwrap").classList.remove("hide");$("lbrowse").classList.add("hide")}
+function selectTab(cat){document.querySelectorAll(".ltab").forEach(x=>x.setAttribute("aria-pressed",String(x.dataset.cat===cat)))}
+function jumpToItem(it){
+  stopLearnPlay();
+  lcat=it.b;
+  const items=lItems();
+  lidx=Math.max(0,items.findIndex(x=>x.n===it.n));
+  $("lsearchinput").value="";
+  selectTab(lcat);
+  showBrowseUI();
+  renderLearn("cat");
+}
+function showLearn(){
+  $("start").classList.add("hide");
+  $("learn").classList.remove("hide");
+  lcat="recycle";lidx=0;
+  $("lsearchinput").value="";
+  showBrowseUI();
+  selectTab(lcat);
+  renderLearn();
+}
+function closeLearn(){
+  stopLearnPlay();
+  $("learn").classList.add("hide");
+  $("start").classList.remove("hide");
+}
+document.querySelectorAll(".ltab").forEach(t=>t.addEventListener("click",()=>{
+  stopLearnPlay();
+  if(t.dataset.cat==="search"){
+    selectTab("search");
+    showSearchUI();
+    renderResults($("lsearchinput").value);
+    $("lsearchinput").focus();
+    return;
+  }
+  lcat=t.dataset.cat;lidx=0;
+  selectTab(lcat);
+  showBrowseUI();
+  renderLearn("cat");
+}));
+$("lsearchinput").addEventListener("input",()=>renderResults($("lsearchinput").value));
+$("lresults").addEventListener("click",e=>{
+  const row=e.target.closest(".lrow");
+  if(!row)return;
+  const it=ITEMS.find(x=>x.n===row.dataset.name);
+  if(it)jumpToItem(it);
+});
+$("lprev").addEventListener("click",()=>{stopLearnPlay();lstep(-1)});
+$("lnext").addEventListener("click",()=>{stopLearnPlay();lstep(1)});
+$("lplay").addEventListener("click",()=>{lplaying?stopLearnPlay():startLearnPlay()});
+$("lcard").addEventListener("click",()=>{stopLearnPlay();lstep(1)});
+$("learnback").addEventListener("click",closeLearn);
+
 function finish(){
   locked=true;
   $("fill").style.width="100%";
   const correct=queue.length-missed.length;
-  const prev=loadBests()[level]||0;
+  const prev=loadBests()[scoreKey()]||0;
   const isBest=score>prev;
-  if(isBest)saveBest(level,score);
+  if(isBest)saveBest(scoreKey(),score);
   $("newbest").hidden=!isBest;
   $("big").textContent=score;
   $("grade").textContent=correct===queue.length?"Perfect run"
@@ -631,7 +958,7 @@ function finish(){
   }
 }
 
-$("music").classList.remove("off"); $("music").title = "Music: " + TRACKS[trackIdx].name; $("music").setAttribute("aria-label", "Background music: " + TRACKS[trackIdx].name);
+$("music").classList.add("off");
 paintBests();
 </script>
 </body>
